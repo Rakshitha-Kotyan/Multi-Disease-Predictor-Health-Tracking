@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Assist • Health Predictor</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">Health Assist</div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/predict" aria-current="page">Health Predictor</a></li>
+      <li><a href="/track">Tracking</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/login">Login</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <h1>Health Predictor</h1>
+    <p>Select symptoms and get probable conditions with guidance.</p>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h2>Predict Disease</h2>
+      <div class="form-row">
+        <label for="symptom-search">Search and add symptoms</label>
+        <div class="suggestions">
+          <input id="symptom-search" type="text" placeholder="Type to search symptoms and press Enter or click to add" autocomplete="off" />
+          <div id="suggestions" class="suggestions-list" style="display:none;"></div>
+        </div>
+        <div id="chips" class="chips"></div>
+        <div class="input-help">Tip: click an added chip × to remove.</div>
+      </div>
+      <div class="form-row">
+        <label for="topk">Top N predictions</label>
+        <input id="topk" type="number" min="1" max="5" value="3" />
+      </div>
+      <button id="predict-btn">Predict</button>
+    </div>
+    <div id="results" class="results"></div>
+  </main>
+
+  <script src="/static/predict.js"></script>
+</body>
+</html>
+
+
