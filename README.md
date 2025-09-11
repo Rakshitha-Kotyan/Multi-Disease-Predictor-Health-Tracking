@@ -1,19 +1,31 @@
-## Run options
+## Health Assist – Multi-disease Predictor & Health Tracker
 
-### Streamlit UI (enhanced)
-```
-streamlit run app.py
-```
+### Prerequisites
+- Python 3.9+
+- pip
 
-### JS Frontend + Flask API
-1) Install deps
+### Install dependencies
 ```
 pip install -r requirements.txt
 ```
-2) Start Flask
+
+### Run the app (Flask + JS frontend)
 ```
 python server.py
 ```
-3) Open `http://localhost:5000` to view the JS app with navbar, hero, tabs for Health Prediction and Health Tracking.
 
+### Open in browser
+- Home: `http://localhost:5000`
+- Health Predictor: `http://localhost:5000/predict`
+- Tracking: `http://localhost:5000/track`
+- About: `http://localhost:5000/about`
+- Login: `http://localhost:5000/login`
+- Contact: `http://localhost:5000/contact`
+
+### Notes
+- Models and data are loaded server-side from `models/` and `data/`.
+- Endpoints:
+  - GET `/api/symptoms` → list of symptoms
+  - POST `/api/predict` → predictions for selected symptoms
+  - POST `/api/track` → demo endpoint to echo health metrics
 
