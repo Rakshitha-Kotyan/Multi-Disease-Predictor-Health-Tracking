@@ -26,24 +26,25 @@
 
   <main class="container">
     <div class="card">
-      <h2>Track Health</h2>
-      <div class="form-row">
-        <label>Heart rate</label>
-        <input id="hr" type="number" placeholder="bpm" />
-      </div>
-      <div class="form-row">
-        <label>Steps</label>
-        <input id="steps" type="number" placeholder="count" />
-      </div>
-      <div class="form-row">
-        <label>Sleep hours</label>
-        <input id="sleep" type="number" step="0.1" placeholder="hours" />
-      </div>
-      <button id="save-track">Save</button>
+      <h2>Demo Wearable Data</h2>
+      <p>Click to generate and save sample data points (heart rate, steps, sleep).</p>
+      <button id="save-track">Generate sample data</button>
     </div>
-    <pre id="track-output" class="output"></pre>
-  </main>
 
+    <div class="card">
+      <h2>Heart Rate (Line)</h2>
+      <div class="chart-box"><canvas id="chart-hr"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Steps (Bar)</h2>
+      <div class="chart-box"><canvas id="chart-steps"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Sleep Pattern (Pie)</h2>
+      <div class="chart-box pie"><canvas id="chart-sleep"></canvas></div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/static/track.js"></script>
 </body>
 </html>

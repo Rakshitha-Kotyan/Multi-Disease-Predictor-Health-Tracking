@@ -4,6 +4,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import os
+import time
 
 
 def load_assets():
@@ -32,6 +33,7 @@ app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 
 MODEL, MLB, D2DESC, D2PRE = load_assets()
+TRACK_BUFFER = []  # in-memory demo store: list of dicts
 
 
 @app.route("/")
@@ -105,9 +107,37 @@ def predict():
 
 @app.route("/api/track", methods=["POST"])
 def track_health():
-    # Placeholder endpoint to accept health metrics and echo back
     data = request.json or {}
-    return jsonify({"received": data}), 200
+    if not isinstance(data, dict):
+        return jsonify({"error": "invalid payload"}), 400
+    data.setdefault("ts", int(time.time()))
+    TRACK_BUFFER.append(data)
+    # limit memory
+    if len(TRACK_BUFFER) > 500:
+        del TRACK_BUFFER[: len(TRACK_BUFFER) - 500]
+    return jsonify({"ok": True, "saved": data}), 200
+
+
+@app.route("/api/track/sample", methods=["POST"])
+def track_sample():
+    # Generate demo wearable-like values
+    ts = int(time.time())
+    sample = {
+        "ts": ts,
+        "heart_rate": int(np.random.normal(76, 6)),
+        "steps": int(max(0, np.random.normal(6000, 1500))),
+        "sleep_hours": float(max(0.0, np.random.normal(7.0, 1.0)))
+    }
+    TRACK_BUFFER.append(sample)
+    if len(TRACK_BUFFER) > 500:
+        del TRACK_BUFFER[: len(TRACK_BUFFER) - 500]
+    return jsonify({"ok": True, "saved": sample}), 200
+
+
+@app.route("/api/track/series", methods=["GET"])
+def track_series():
+    # Return entire in-memory series
+    return jsonify({"series": TRACK_BUFFER}), 200
 
 
 if __name__ == "__main__":
