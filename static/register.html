@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HealthPredict • Login</title>
+  <title>HealthPredict • Register</title>
   <link rel="stylesheet" href="/static/styles.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -22,11 +22,11 @@
         <li><a href="/contact">Contact Us</a></li>
       </ul>
       <div class="nav-auth">
-        <a href="/login" class="login-btn active">
+        <a href="/login" class="login-btn">
           <i class="fas fa-user"></i>
           Login
         </a>
-        <a href="/register" class="register-btn">
+        <a href="/register" class="register-btn active">
           <i class="fas fa-user-plus"></i>
           Register
         </a>
@@ -37,19 +37,33 @@
     </div>
   </nav>
 
-  <!-- Login Section -->
+  <!-- Register Section -->
   <section class="auth-section">
     <div class="auth-container">
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-icon">
-            <i class="fas fa-user-circle"></i>
+            <i class="fas fa-user-plus"></i>
           </div>
-          <h1>Sign In</h1>
-          <p>Access your HealthPredict account</p>
+          <h1>Create Account</h1>
+          <p>Join HealthPredict and start your health journey</p>
         </div>
         
-        <form class="auth-form" id="login-form">
+        <form class="auth-form" id="register-form">
+          <div class="form-group">
+            <label for="fullname">
+              <i class="fas fa-user"></i>
+              Full Name
+            </label>
+            <input 
+              type="text" 
+              id="fullname" 
+              name="fullname" 
+              required 
+              placeholder="Enter your full name"
+            >
+          </div>
+          
           <div class="form-group">
             <label for="email">
               <i class="fas fa-envelope"></i>
@@ -75,7 +89,7 @@
                 id="password" 
                 name="password" 
                 required 
-                placeholder="Enter your password"
+                placeholder="Create a strong password"
               >
               <button type="button" class="password-toggle" onclick="togglePassword()">
                 <i class="fas fa-eye"></i>
@@ -83,24 +97,42 @@
             </div>
           </div>
           
+          <div class="form-group">
+            <label for="confirm-password">
+              <i class="fas fa-lock"></i>
+              Confirm Password
+            </label>
+            <div class="password-input">
+              <input 
+                type="password" 
+                id="confirm-password" 
+                name="confirm-password" 
+                required 
+                placeholder="Confirm your password"
+              >
+              <button type="button" class="password-toggle" onclick="toggleConfirmPassword()">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
           <div class="form-options">
             <label class="checkbox-label">
-              <input type="checkbox" name="remember">
+              <input type="checkbox" name="terms" required>
               <span class="checkmark"></span>
-              Remember me
+              I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
             </label>
-            <a href="/forgot-password" class="forgot-link">Forgot password?</a>
           </div>
           
           <button type="submit" class="btn btn-primary btn-large">
-            <i class="fas fa-sign-in-alt"></i>
-            Sign In
+            <i class="fas fa-user-plus"></i>
+            Create Account
           </button>
         </form>
         
         
         <div class="auth-footer">
-          <p>Don't have an account? <a href="/register">Sign up here</a></p>
+          <p>Already have an account? <a href="/login">Sign in here</a></p>
         </div>
       </div>
     </div>
@@ -162,25 +194,46 @@
       }
     }
     
-    // Login form handling
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+    function toggleConfirmPassword() {
+      const passwordInput = document.getElementById('confirm-password');
+      const toggleButton = document.querySelectorAll('.password-toggle i')[1];
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleButton.classList.remove('fa-eye');
+        toggleButton.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleButton.classList.remove('fa-eye-slash');
+        toggleButton.classList.add('fa-eye');
+      }
+    }
+    
+    // Register form handling
+    document.getElementById('register-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
       
+      // Validate passwords match
+      if (data.password !== data['confirm-password']) {
+        showNotification('Passwords do not match', 'error');
+        return;
+      }
+      
       // Show loading state
       const submitBtn = this.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
       submitBtn.disabled = true;
       
-      // Simulate login (replace with actual API call)
+      // Simulate registration (replace with actual API call)
       setTimeout(() => {
-        showNotification('Login successful! Welcome back!', 'success');
-        // Redirect to dashboard or home page
+        showNotification('Account created successfully! Welcome to HealthPredict!', 'success');
+        // Redirect to login page
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = '/login';
         }, 1500);
       }, 2000);
     });

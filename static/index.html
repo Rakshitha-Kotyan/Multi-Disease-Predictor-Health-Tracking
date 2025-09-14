@@ -3,29 +3,196 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Health Assist • Home</title>
+  <title>HealthPredict • Multiple Health Prediction & Tracking System</title>
   <link rel="stylesheet" href="/static/styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+  <!-- Navigation -->
   <nav class="navbar">
-    <div class="nav-brand">Health Assist</div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/login">Login</a></li>
-      <li><a href="/contact">Contact</a></li>
-    </ul>
+    <div class="nav-container">
+      <div class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        <span>HealthPredict</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/" class="active">Home</a></li>
+        <li><a href="/about">About Us</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/contact">Contact Us</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="/login" class="login-btn">
+          <i class="fas fa-user"></i>
+          Login
+        </a>
+        <a href="/register" class="register-btn">
+          <i class="fas fa-user-plus"></i>
+          Register
+        </a>
+      </div>
+      <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+    </div>
   </nav>
 
-  <header class="hero">
-    <h1>Multi-disease Predictor & Health Tracker</h1>
-    <p>Start with the Health Predictor to get AI-assisted insights.</p>
-    <a class="cta" href="/predict">Go to Health Predictor →</a>
-  </header>
-  
-  <main class="container">
-  </main>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          <span class="gradient-text">Multiple Health</span>
+          <span class="gradient-text">Prediction & Tracking</span>
+          <span class="gradient-text">System</span>
+        </h1>
+        <p class="hero-subtitle">
+          Advanced AI-powered healthcare solutions for early disease detection and comprehensive health monitoring.
+        </p>
+        <div class="hero-buttons">
+          <a href="/predict" class="btn btn-primary">
+            <i class="fas fa-brain"></i>
+            Health Prediction
+          </a>
+          <a href="/track" class="btn btn-secondary">
+            <i class="fas fa-chart-line"></i>
+            Health Tracking
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-card">
+          <i class="fas fa-stethoscope"></i>
+        </div>
+        <div class="floating-elements">
+          <div class="floating-icon icon-1"><i class="fas fa-heart"></i></div>
+          <div class="floating-icon icon-2"><i class="fas fa-activity"></i></div>
+          <div class="floating-icon icon-3"><i class="fas fa-shield-alt"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
 
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Why Choose HealthPredict?</h2>
+        <p>Comprehensive AI-powered healthcare solutions designed to predict, track, and optimize your health journey.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>AI-based Disease Prediction</h3>
+          <p>Advanced machine learning algorithms analyze your symptoms to provide accurate disease predictions with confidence scores.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Personalized Health Tracking</h3>
+          <p>Monitor your vital signs, activity levels, and health metrics with intelligent tracking and trend analysis.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3>Smart Recommendations</h3>
+          <p>Get personalized health recommendations and preventive measures based on your health data and risk factors.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h3>Data Visualization</h3>
+          <p>Interactive charts and graphs help you understand your health trends and make informed decisions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number" data-target="10000">0</div>
+          <div class="stat-label">Users Served</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="95">0</div>
+          <div class="stat-label">Accuracy Rate</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="24">0</div>
+          <div class="stat-label">Hours Support</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="50">0</div>
+          <div class="stat-label">Diseases Covered</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-content">
+        <h2>Ready to Take Control of Your Health?</h2>
+        <p>Join thousands of users who trust HealthPredict for their health monitoring needs.</p>
+        <a href="/predict" class="btn btn-primary btn-large">
+          <i class="fas fa-rocket"></i>
+          Get Started Now
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="nav-brand">
+            <i class="fas fa-heartbeat"></i>
+            <span>HealthPredict</span>
+          </div>
+          <p>Empowering individuals with AI-driven health insights for a healthier tomorrow.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/predict">Prediction</a></li>
+              <li><a href="/track">Tracking</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>Support</h4>
+            <ul>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/help">Help Center</a></li>
+              <li><a href="/privacy">Privacy Policy</a></li>
+              <li><a href="/terms">Terms of Service</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 HealthPredict. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
 </body>
 </html>
 

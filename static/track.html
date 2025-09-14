@@ -3,49 +3,224 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Health Assist • Tracking</title>
+  <title>HealthPredict • Health Tracking</title>
   <link rel="stylesheet" href="/static/styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+  <!-- Navigation -->
   <nav class="navbar">
-    <div class="nav-brand">Health Assist</div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/predict">Health Predictor</a></li>
-      <li><a href="/track" aria-current="page">Tracking</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/login">Login</a></li>
-      <li><a href="/contact">Contact</a></li>
-    </ul>
+    <div class="nav-container">
+      <div class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        <span>HealthPredict</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About Us</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/contact">Contact Us</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="/login" class="login-btn">
+          <i class="fas fa-user"></i>
+          Login
+        </a>
+        <a href="/register" class="register-btn">
+          <i class="fas fa-user-plus"></i>
+          Register
+        </a>
+      </div>
+      <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+    </div>
   </nav>
 
-  <header class="hero">
-    <h1>Health Tracking</h1>
-    <p>Save basic health metrics (demo).</p>
-  </header>
+  <!-- Hero Section -->
+  <section class="hero tight">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          <span class="gradient-text">Health Tracking</span>
+        </h1>
+        <p class="hero-subtitle">
+          Monitor your vital signs, activity levels, and health metrics with intelligent tracking and trend analysis.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-card">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- Main Content -->
   <main class="container">
-    <div class="card">
-      <h2>Demo Wearable Data</h2>
-      <p>Click to generate and save sample data points (heart rate, steps, sleep).</p>
-      <button id="save-track">Generate sample data</button>
+    <!-- Data Input Section -->
+    <div class="tracking-container">
+      <div class="card tracking-input-card">
+        <div class="card-header">
+          <h2><i class="fas fa-plus-circle"></i> Add Health Data</h2>
+          <p>Enter your health metrics or generate sample data for demonstration</p>
+        </div>
+        
+        <div class="input-grid">
+          <div class="form-row">
+            <label for="hr">
+              <i class="fas fa-heartbeat"></i>
+              Heart Rate (BPM)
+            </label>
+            <input type="number" id="hr" placeholder="e.g., 72" min="40" max="200">
+          </div>
+          
+          <div class="form-row">
+            <label for="steps">
+              <i class="fas fa-walking"></i>
+              Steps Today
+            </label>
+            <input type="number" id="steps" placeholder="e.g., 8500" min="0" max="50000">
+          </div>
+          
+          <div class="form-row">
+            <label for="sleep">
+              <i class="fas fa-bed"></i>
+              Sleep Hours
+            </label>
+            <input type="number" id="sleep" placeholder="e.g., 7.5" min="0" max="24" step="0.5">
+          </div>
+        </div>
+        
+        <div class="button-group">
+          <button id="save-track" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Save Data
+          </button>
+          <button id="generate-sample" class="btn btn-secondary">
+            <i class="fas fa-magic"></i>
+            Generate Sample Data
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Heart Rate (Line)</h2>
-      <div class="chart-box"><canvas id="chart-hr"></canvas></div>
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="section-header">
+        <h2>Health Analytics</h2>
+        <p>Visualize your health trends and patterns</p>
+      </div>
+      
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-heartbeat"></i> Heart Rate Trend</h3>
+            <div class="chart-controls">
+              <select id="hr-period">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-hr"></canvas>
+          </div>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-walking"></i> Daily Steps</h3>
+            <div class="chart-controls">
+              <select id="steps-period">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-steps"></canvas>
+          </div>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-bed"></i> Sleep Pattern</h3>
+            <div class="chart-controls">
+              <select id="sleep-period">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-box pie">
+            <canvas id="chart-sleep"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <h2>Steps (Bar)</h2>
-      <div class="chart-box"><canvas id="chart-steps"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Sleep Pattern (Pie)</h2>
-      <div class="chart-box pie"><canvas id="chart-sleep"></canvas></div>
+
+    <!-- Health Insights -->
+    <div class="insights-section">
+      <div class="card insights-card">
+        <div class="card-header">
+          <h2><i class="fas fa-lightbulb"></i> Health Insights</h2>
+          <p>AI-powered analysis of your health data</p>
+        </div>
+        <div id="insights-content" class="insights-content">
+          <div class="insight-item">
+            <i class="fas fa-info-circle"></i>
+            <p>Add some health data to see personalized insights and recommendations.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="nav-brand">
+            <i class="fas fa-heartbeat"></i>
+            <span>HealthPredict</span>
+          </div>
+          <p>Empowering individuals with AI-driven health insights for a healthier tomorrow.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/predict">Prediction</a></li>
+              <li><a href="/track">Tracking</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>Support</h4>
+            <ul>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/help">Help Center</a></li>
+              <li><a href="/privacy">Privacy Policy</a></li>
+              <li><a href="/terms">Terms of Service</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 HealthPredict. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/static/track.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
 

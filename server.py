@@ -60,6 +60,14 @@ def page_login():
 def page_contact():
     return send_from_directory("static", "contact.html")
 
+@app.route("/services")
+def page_services():
+    return send_from_directory("static", "services.html")
+
+@app.route("/register")
+def page_register():
+    return send_from_directory("static", "register.html")
+
 
 @app.route("/api/symptoms", methods=["GET"])
 def get_symptoms():
