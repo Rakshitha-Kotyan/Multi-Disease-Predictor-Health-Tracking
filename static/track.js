@@ -107,8 +107,8 @@ function initializeCharts() {
   // Heart Rate Chart
   const hrCtx = $('#chart-hr');
   if (hrCtx) {
-    hrChart = new Chart(hrCtx, {
-      type: 'line',
+  hrChart = new Chart(hrCtx, {
+    type: 'line',
       data: {
         labels: [],
         datasets: [{
@@ -146,8 +146,8 @@ function initializeCharts() {
   // Steps Chart
   const stepsCtx = $('#chart-steps');
   if (stepsCtx) {
-    stepsChart = new Chart(stepsCtx, {
-      type: 'bar',
+  stepsChart = new Chart(stepsCtx, {
+    type: 'bar',
       data: {
         labels: [],
         datasets: [{
@@ -183,7 +183,7 @@ function initializeCharts() {
   // Sleep Chart
   const sleepCtx = $('#chart-sleep');
   if (sleepCtx) {
-    sleepChart = new Chart(sleepCtx, {
+  sleepChart = new Chart(sleepCtx, {
       type: 'doughnut',
       data: {
         labels: ['Sleep', 'Awake'],
