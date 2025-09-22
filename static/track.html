@@ -22,6 +22,7 @@
         <li><a href="/contact">Contact Us</a></li>
       </ul>
       <div class="nav-auth">
+        <span id="whoami" class="user-pill" style="margin-right: 12px;"></span>
         <a href="/login" class="login-btn">
           <i class="fas fa-user"></i>
           Login
@@ -66,6 +67,28 @@
           <p>Enter your health metrics or generate sample data for demonstration</p>
         </div>
         
+        <!-- Guidance Section -->
+        <div class="guidance-section" style="background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ffffff;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+            <h3 style="margin: 0; font-size: 1.1rem;">How to Use Health Tracking</h3>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">1</span>
+              <span>Enter your health data in the fields below</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">2</span>
+              <span>Click "Save Data" to store your information</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">3</span>
+              <span>View your health analytics and insights below</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="input-grid">
           <div class="form-row">
             <label for="hr">
@@ -101,6 +124,10 @@
             <i class="fas fa-magic"></i>
             Generate Sample Data
           </button>
+          <button id="clear-my-data" class="btn btn-accent">
+            <i class="fas fa-broom"></i>
+            Clear My Data
+          </button>
         </div>
       </div>
     </div>
@@ -110,6 +137,10 @@
       <div class="section-header">
         <h2>Health Analytics</h2>
         <p>Visualize your health trends and patterns</p>
+        <div class="analytics-note" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 6px; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+          <i class="fas fa-chart-line" style="margin-right: 0.5rem; color: #00d4ff;"></i>
+          <strong>Tip:</strong> Add and save your health data above to see personalized analytics and insights here.
+        </div>
       </div>
       
       <div class="charts-grid">
@@ -219,8 +250,8 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="/static/track.js"></script>
-  <script src="/static/app.js"></script>
+  <script src="/static/track.js?v=2"></script>
+  <script src="/static/app.js?v=2"></script>
 </body>
 </html>
 

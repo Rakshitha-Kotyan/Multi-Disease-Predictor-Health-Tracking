@@ -4,12 +4,46 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 // Chart instances
 let hrChart, stepsChart, sleepChart;
 let healthData = [];
+let boundUserId = null; // track which user's data is currently loaded
 
 // Initialize charts when page loads
 document.addEventListener('DOMContentLoaded', function() {
+  // Require auth
+  const user = getCurrentUser && getCurrentUser();
+  if (!user) {
+    window.location.href = '/login';
+    return;
+  }
+  boundUserId = user.id;
+  // Ensure nav shows logout when on tracking page as well
+  const loginLink = document.querySelector('.nav-auth .login-btn');
+  const registerLink = document.querySelector('.nav-auth .register-btn');
+  if (loginLink) loginLink.style.display = 'none';
+  if (registerLink) {
+    const userName = user.email ? user.email.split('@')[0] : user.id;
+    registerLink.outerHTML = `
+      <span class="user-name" style="margin-right: 12px; color: var(--text-primary); font-weight: 500;">
+        ${userName.charAt(0).toUpperCase() + userName.slice(1)}
+      </span>
+      <button id="logout-btn" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    `;
+  }
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      try { localStorage.removeItem('hp_current_user'); } catch (e) {}
+      try { sessionStorage.clear(); } catch (e) {}
+      // Clear charts immediately on logout to avoid flashing previous user's data
+      clearCharts();
+      window.location.href = '/login';
+    });
+  }
   initializeCharts();
   loadHealthData();
   setupEventListeners();
+  // show whoami
+  const who = document.getElementById('whoami');
+  if (who) { who.textContent = user && user.email ? user.email : (user && user.id ? user.id : ''); }
 });
 
 function setupEventListeners() {
@@ -25,16 +59,52 @@ function setupEventListeners() {
     generateBtn.addEventListener('click', generateSampleData);
   }
 
+  // Clear my data button
+  const clearBtn = $('#clear-my-data');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', clearMyData);
+  }
+
   // Chart period selectors
   $$('.chart-controls select').forEach(select => {
     select.addEventListener('change', updateCharts);
   });
 }
 
+async function clearMyData() {
+  try {
+    const res = await fetch('/api/track/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...buildAuthHeaders() }
+    });
+    if (res.ok) {
+      clearCharts();
+      updateInsights();
+      showNotification('Your data was cleared.', 'success');
+    } else {
+      showNotification('Unable to clear data.', 'error');
+    }
+  } catch (e) {
+    showNotification('Unable to clear data.', 'error');
+  }
+}
+
 async function loadHealthData() {
   try {
-    const response = await fetch('/api/track/series');
+    // Always start from empty before fetching to avoid mixing visuals
+    clearCharts();
+    const response = await fetch('/api/track/series', {
+      headers: buildAuthHeaders()
+    });
     const data = await response.json();
+    // Store only if user still logged in and unchanged
+    const current = getCurrentUser && getCurrentUser();
+    if (!current) { clearCharts(); return; }
+    if (boundUserId && current.id !== boundUserId) {
+      // User switched accounts in another tab; reset state for isolation
+      clearCharts();
+      boundUserId = current.id;
+    }
     healthData = data.series || [];
     updateCharts();
     updateInsights();
@@ -63,12 +133,12 @@ async function saveHealthData() {
   try {
     const response = await fetch('/api/track', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...buildAuthHeaders() },
       body: JSON.stringify(payload)
     });
 
     if (response.ok) {
-      showNotification('Health data saved successfully!', 'success');
+      showNotification('Health data saved successfully! Check your analytics below for insights and trends.', 'success');
       // Clear form
       $('#hr').value = '';
       $('#steps').value = '';
@@ -85,10 +155,26 @@ async function saveHealthData() {
 }
 
 async function generateSampleData() {
+  // Check if user already has data
+  if (healthData.length > 0) {
+    showNotification('You already have health data. Please add new data manually or clear existing data first.', 'warning');
+    return;
+  }
+
+  // For new users, require them to enter at least one parameter
+  const hr = parseFloat($('#hr').value) || 0;
+  const steps = parseInt($('#steps').value) || 0;
+  const sleep = parseFloat($('#sleep').value) || 0;
+
+  if (hr === 0 && steps === 0 && sleep === 0) {
+    showNotification('Please enter at least one health metric before generating sample data, or add your own data manually. Follow the steps: 1) Enter data → 2) Save data → 3) View analytics', 'warning');
+    return;
+  }
+
   try {
     const response = await fetch('/api/track/sample', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', ...buildAuthHeaders() }
     });
 
     if (response.ok) {
@@ -110,10 +196,10 @@ function initializeCharts() {
   hrChart = new Chart(hrCtx, {
     type: 'line',
       data: {
-        labels: [],
+        labels: ['No Data'],
         datasets: [{
           label: 'Heart Rate (BPM)',
-          data: [],
+          data: [0],
           borderColor: '#00d4ff',
           backgroundColor: 'rgba(0, 212, 255, 0.1)',
           borderWidth: 2,
@@ -149,10 +235,10 @@ function initializeCharts() {
   stepsChart = new Chart(stepsCtx, {
     type: 'bar',
       data: {
-        labels: [],
+        labels: ['No Data'],
         datasets: [{
           label: 'Daily Steps',
-          data: [],
+          data: [0],
           backgroundColor: '#00ff88',
           borderColor: '#00cc66',
           borderWidth: 1
@@ -186,7 +272,7 @@ function initializeCharts() {
   sleepChart = new Chart(sleepCtx, {
       type: 'doughnut',
       data: {
-        labels: ['Sleep', 'Awake'],
+        labels: ['No Data', 'Awake'],
         datasets: [{
           data: [0, 24],
           backgroundColor: ['#00d4ff', '#333333'],
@@ -207,7 +293,7 @@ function initializeCharts() {
 }
 
 function updateCharts() {
-  if (!healthData.length) return;
+  if (!healthData.length) { resetChartsToEmpty(); return; }
 
   // Get the last 7 days of data
   const recentData = healthData.slice(-7);
@@ -236,7 +322,16 @@ function updateCharts() {
 
 function updateInsights() {
   const insightsContent = $('#insights-content');
-  if (!insightsContent || !healthData.length) return;
+  if (!insightsContent) return;
+  if (!healthData.length) {
+    insightsContent.innerHTML = `
+      <div class="insight-item">
+        <i class="fas fa-info-circle"></i>
+        <p>Add some health data to see personalized insights and recommendations.</p>
+      </div>
+    `;
+    return;
+  }
 
   const recentData = healthData.slice(-7);
   const avgHR = recentData.reduce((sum, d) => sum + (d.heart_rate || 0), 0) / recentData.length;
@@ -349,4 +444,57 @@ function showNotification(message, type = 'info') {
     notification.classList.remove('show');
     setTimeout(() => notification.remove(), 300);
   }, 3000);
+}
+
+// --- Auth helpers (fallbacks if not present from app.js) ---
+function getCurrentUser() {
+  try {
+    const raw = localStorage.getItem('hp_current_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function buildAuthHeaders() {
+  const user = getCurrentUser();
+  return user && user.id ? { 'X-User-Id': user.id } : {};
+}
+
+// Helpers to clear/reset charts on logout or empty state
+function clearCharts() {
+  try {
+    if (hrChart) { 
+      hrChart.data.labels = ['No Data']; 
+      hrChart.data.datasets[0].data = [0]; 
+      hrChart.update(); 
+    }
+    if (stepsChart) { 
+      stepsChart.data.labels = ['No Data']; 
+      stepsChart.data.datasets[0].data = [0]; 
+      stepsChart.update(); 
+    }
+    if (sleepChart) { 
+      sleepChart.data.labels = ['No Data', 'Awake']; 
+      sleepChart.data.datasets[0].data = [0, 24]; 
+      sleepChart.update(); 
+    }
+  } catch (e) {}
+  healthData = [];
+}
+
+function resetChartsToEmpty() {
+  if (hrChart) { 
+    hrChart.data.labels = ['No Data']; 
+    hrChart.data.datasets[0].data = [0]; 
+    hrChart.update(); 
+  }
+  if (stepsChart) { 
+    stepsChart.data.labels = ['No Data']; 
+    stepsChart.data.datasets[0].data = [0]; 
+    stepsChart.update(); 
+  }
+  if (sleepChart) { 
+    sleepChart.data.labels = ['No Data', 'Awake']; 
+    sleepChart.data.datasets[0].data = [0, 24]; 
+    sleepChart.update(); 
+  }
 }

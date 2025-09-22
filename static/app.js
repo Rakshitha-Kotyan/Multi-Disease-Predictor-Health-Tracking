@@ -58,6 +58,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Auth UI state
+  const currentUser = getCurrentUser();
+  const loginLink = document.querySelector('.nav-auth .login-btn');
+  const registerLink = document.querySelector('.nav-auth .register-btn');
+  if (currentUser) {
+    if (loginLink) loginLink.style.display = 'none';
+    if (registerLink) {
+      const userName = currentUser.email ? currentUser.email.split('@')[0] : currentUser.id;
+      registerLink.outerHTML = `
+        <span class="user-name" style="margin-right: 12px; color: var(--text-primary); font-weight: 500;">
+          ${userName.charAt(0).toUpperCase() + userName.slice(1)}
+        </span>
+        <button id="logout-btn" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      `;
+    }
+  }
+  // Personalized greeting on home page
+  const greetEl = document.getElementById('user-greeting');
+  if (greetEl) {
+    if (currentUser && currentUser.email) {
+      const name = currentUser.email.split('@')[0];
+      greetEl.textContent = `Welcome back, ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+    } else {
+      greetEl.textContent = '';
+    }
+  }
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      clearCurrentUser();
+      // Clear any per-user cached UI/state and redirect
+      try {
+        sessionStorage.clear();
+      } catch (e) {}
+      window.location.href = '/login';
+    });
+  }
+
   // Navbar scroll effect
   let lastScrollY = window.scrollY;
   const navbar = $('.navbar');
@@ -78,12 +116,11 @@ document.addEventListener('DOMContentLoaded', function() {
     lastScrollY = window.scrollY;
   });
 
-  // Parallax effect for hero section
+  // Disable parallax transform to prevent hero content (buttons) from sliding while scrolling
   window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
     const hero = $('.hero');
     if (hero) {
-      hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+      hero.style.transform = '';
     }
   });
 
@@ -226,9 +263,12 @@ if (saveTrackBtn) {
     saveTrackBtn.disabled = true;
 
     try {
+      const user = getCurrentUser();
+      const headers = { 'Content-Type': 'application/json' };
+      if (user && user.id) headers['X-User-Id'] = user.id;
       const res = await fetch('/api/track', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -426,6 +466,58 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// --- Enhanced auth helpers with OAuth support ---
+function setCurrentUser(user) {
+  try {
+    localStorage.setItem('hp_current_user', JSON.stringify(user));
+  } catch (e) {}
+}
+
+async function getCurrentUser() {
+  try {
+    // First check localStorage for existing user
+    const localUser = localStorage.getItem('hp_current_user');
+    if (localUser) {
+      return JSON.parse(localUser);
+    }
+    
+    // If no local user, check server session
+    const response = await fetch('/api/user');
+    if (response.ok) {
+      const user = await response.json();
+      setCurrentUser(user);
+      return user;
+    }
+    
+    return null;
+  } catch (e) { 
+    return null; 
+  }
+}
+
+function clearCurrentUser() {
+  try {
+    localStorage.removeItem('hp_current_user');
+    // Also clear server session
+    fetch('/api/logout');
+  } catch (e) {}
+}
+
+// Check for OAuth success on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('oauth') === 'success') {
+    showNotification('Login successful! Welcome!', 'success');
+    // Remove the oauth parameter from URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // Refresh the page to update auth state
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }
+});
+
 
 
 
