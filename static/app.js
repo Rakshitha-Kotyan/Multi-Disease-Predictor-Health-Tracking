@@ -3,6 +3,104 @@ const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 // Smooth scrolling for anchor links
 document.addEventListener('DOMContentLoaded', function() {
+  // Theme toggling
+  const THEME_KEY = 'hp-theme';
+  const root = document.documentElement;
+  const themeToggle = document.querySelector('.theme-toggle');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const savedTheme = localStorage.getItem(THEME_KEY);
+
+  const applyTheme = (theme) => {
+    const normalizedTheme = theme === 'light' ? 'light' : 'dark';
+    root.dataset.theme = normalizedTheme;
+    localStorage.setItem(THEME_KEY, normalizedTheme);
+    if (themeToggle) {
+      const icon = themeToggle.querySelector('i');
+      if (icon) {
+        icon.className = normalizedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+      }
+      themeToggle.setAttribute(
+        'aria-label',
+        normalizedTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+      );
+    }
+  };
+
+  const initialTheme = savedTheme || root.dataset.theme || (prefersDark ? 'dark' : 'light');
+  applyTheme(initialTheme);
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = root.dataset.theme === 'light' ? 'dark' : 'light';
+      applyTheme(nextTheme);
+    });
+  }
+
+  const navAuth = document.querySelector('.nav-auth');
+  const trackPageBadge = document.getElementById('whoami');
+
+  const handleLogout = () => {
+    clearCurrentUser();
+    try { sessionStorage.clear(); } catch (e) {}
+    window.location.href = '/login';
+  };
+
+  const renderNavAuthState = (user) => {
+    if (!navAuth || trackPageBadge) return;
+    const loginLink = navAuth.querySelector('.login-btn');
+    const registerLink = navAuth.querySelector('.register-btn');
+    const themeButton = navAuth.querySelector('.theme-toggle');
+    let userDisplay = navAuth.querySelector('.user-name-display');
+    let logoutBtn = navAuth.querySelector('.nav-logout-btn');
+
+    if (user) {
+      const friendlyName = user.name || (user.email ? user.email.split('@')[0] : 'User');
+      if (!userDisplay) {
+        userDisplay = document.createElement('span');
+        userDisplay.className = 'user-name-display';
+        if (themeButton) {
+          navAuth.insertBefore(userDisplay, themeButton);
+        } else {
+          navAuth.appendChild(userDisplay);
+        }
+      }
+      userDisplay.textContent = friendlyName;
+      if (!logoutBtn) {
+        logoutBtn = document.createElement('button');
+        logoutBtn.className = 'btn btn-secondary nav-logout-btn';
+        logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+        if (themeButton) {
+          navAuth.insertBefore(logoutBtn, themeButton);
+        } else {
+          navAuth.appendChild(logoutBtn);
+        }
+        logoutBtn.addEventListener('click', handleLogout);
+      }
+      if (loginLink) loginLink.style.display = 'none';
+      if (registerLink) registerLink.style.display = 'none';
+    } else {
+      if (loginLink) loginLink.style.display = '';
+      if (registerLink) registerLink.style.display = '';
+      if (userDisplay) {
+        userDisplay.remove();
+      }
+      if (logoutBtn) {
+        logoutBtn.removeEventListener('click', handleLogout);
+        logoutBtn.remove();
+      }
+    }
+  };
+
+  renderNavAuthState(getCurrentUser());
+  document.addEventListener('hp-auth-changed', (event) => {
+    renderNavAuthState(event.detail);
+  });
+  syncCurrentUser().then((user) => {
+    if (user) {
+      renderNavAuthState(user);
+    }
+  });
+
   // Animate stats on scroll
   const animateStats = () => {
     const stats = $$('.stat-number');
@@ -46,34 +144,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Mobile menu toggle
-  const mobileToggle = $('.mobile-menu-toggle');
-  const navLinks = $('.nav-links');
-  const navAuth = $('.nav-auth');
+  const mobileToggle = document.querySelector('.mobile-menu-toggle');
+  const navLinksEl = document.querySelector('.nav-links');
 
-  if (mobileToggle) {
+  if (mobileToggle && navLinksEl && navAuth) {
     mobileToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
+      navLinksEl.classList.toggle('active');
       navAuth.classList.toggle('active');
       mobileToggle.classList.toggle('active');
     });
   }
 
-  // Auth UI state
   const currentUser = getCurrentUser();
-  const loginLink = document.querySelector('.nav-auth .login-btn');
-  const registerLink = document.querySelector('.nav-auth .register-btn');
-  if (currentUser) {
-    if (loginLink) loginLink.style.display = 'none';
-    if (registerLink) {
-      const userName = currentUser.email ? currentUser.email.split('@')[0] : currentUser.id;
-      registerLink.outerHTML = `
-        <span class="user-name" style="margin-right: 12px; color: var(--text-primary); font-weight: 500;">
-          ${userName.charAt(0).toUpperCase() + userName.slice(1)}
-        </span>
-        <button id="logout-btn" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</button>
-      `;
-    }
-  }
   // Personalized greeting on home page
   const greetEl = document.getElementById('user-greeting');
   if (greetEl) {
@@ -83,17 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       greetEl.textContent = '';
     }
-  }
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      clearCurrentUser();
-      // Clear any per-user cached UI/state and redirect
-      try {
-        sessionStorage.clear();
-      } catch (e) {}
-      window.location.href = '/login';
-    });
   }
 
   // Navbar scroll effect
@@ -468,39 +539,44 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // --- Enhanced auth helpers with OAuth support ---
+const AUTH_STORAGE_KEY = 'hp_current_user';
+
 function setCurrentUser(user) {
   try {
-    localStorage.setItem('hp_current_user', JSON.stringify(user));
+    if (user) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+    document.dispatchEvent(new CustomEvent('hp-auth-changed', { detail: user }));
   } catch (e) {}
 }
 
-async function getCurrentUser() {
+function getCurrentUser() {
   try {
-    // First check localStorage for existing user
-    const localUser = localStorage.getItem('hp_current_user');
-    if (localUser) {
-      return JSON.parse(localUser);
-    }
-    
-    // If no local user, check server session
-    const response = await fetch('/api/user');
+    const localUser = localStorage.getItem(AUTH_STORAGE_KEY);
+    return localUser ? JSON.parse(localUser) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function syncCurrentUser() {
+  try {
+    const response = await fetch('/api/user', { credentials: 'same-origin' });
     if (response.ok) {
       const user = await response.json();
       setCurrentUser(user);
       return user;
     }
-    
-    return null;
-  } catch (e) { 
-    return null; 
-  }
+  } catch (e) {}
+  return null;
 }
 
 function clearCurrentUser() {
+  setCurrentUser(null);
   try {
-    localStorage.removeItem('hp_current_user');
-    // Also clear server session
-    fetch('/api/logout');
+    fetch('/api/logout', { credentials: 'same-origin' });
   } catch (e) {}
 }
 

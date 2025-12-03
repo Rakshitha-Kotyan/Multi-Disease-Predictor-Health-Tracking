@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HealthPredict • Register</title>
+  <script src="/static/theme-init.js"></script>
   <link rel="stylesheet" href="/static/styles.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -30,6 +31,9 @@
           <i class="fas fa-user-plus"></i>
           Register
         </a>
+        <button class="theme-toggle" type="button" aria-label="Toggle color mode">
+          <i class="fas fa-moon"></i>
+        </button>
       </div>
       <div class="mobile-menu-toggle">
         <i class="fas fa-bars"></i>
@@ -285,7 +289,7 @@
     }
     
     // Register form handling
-    document.getElementById('register-form').addEventListener('submit', function(e) {
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const formData = new FormData(this);
@@ -309,14 +313,40 @@
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
       submitBtn.disabled = true;
       
-      // Simulate registration (replace with actual API call)
-      setTimeout(() => {
-        showNotification('Account created successfully! Welcome to HealthPredict!', 'success');
-        // Redirect to login page
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            name: data.fullname,
+            email: data.email,
+            password: data.password
+          })
+        });
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (err) {}
+        
+        if (!response.ok) {
+          showNotification(result.error || 'Unable to create account.', 'error');
+          return;
+        }
+        
+        if (result.user && typeof setCurrentUser === 'function') {
+          setCurrentUser(result.user);
+        }
+        showNotification('Account created successfully! Redirecting to your dashboard...', 'success');
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = '/track';
         }, 1500);
-      }, 2000);
+      } catch (error) {
+        showNotification('Unable to create account right now. Please try again.', 'error');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
     });
   </script>
 </body>

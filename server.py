@@ -8,6 +8,8 @@ import time
 import requests
 import secrets
 import hashlib
+import json
+from pathlib import Path
 
 
 def load_assets():
@@ -32,13 +34,79 @@ def load_assets():
     return model, mlb, disease_to_description, disease_to_precautions
 
 
+DATA_DIR = Path("data")
+USER_STORE_PATH = DATA_DIR / "users.json"
+TRACK_STORE_PATH = DATA_DIR / "track_store.json"
+
+
+def load_store(path: Path, default):
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return default
+    except json.JSONDecodeError:
+        return default
+
+
+def save_store(path: Path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2)
+
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    if not stored_hash:
+        return False
+    return hash_password(password) == stored_hash
+
+
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
 
 MODEL, MLB, D2DESC, D2PRE = load_assets()
-# Per-user in-memory demo store: { user_id: [ { ..data.. } ] }
-TRACK_STORE = {}
+# Persistent user + tracking stores
+USER_STORE = load_store(USER_STORE_PATH, {})
+TRACK_STORE = load_store(TRACK_STORE_PATH, {})
+
+
+def persist_users():
+    save_store(USER_STORE_PATH, USER_STORE)
+
+
+def persist_tracks():
+    save_store(TRACK_STORE_PATH, TRACK_STORE)
+
+
+def normalize_email(value: str) -> str:
+    return (value or "").strip().lower()
+
+
+def public_user_payload(user_record):
+    if not user_record:
+        return None
+    email = user_record.get("email", "")
+    return {
+        "id": user_record.get("id") or email,
+        "email": email,
+        "name": user_record.get("name") or (email.split("@")[0] if email else "")
+    }
+
+
+def resolve_request_user_id():
+    session_user = session.get('user')
+    header_user = request.headers.get("X-User-Id") or request.args.get("user_id")
+    if session_user:
+        session_id = session_user.get("id")
+        if header_user and header_user != session_id:
+            return None
+        return session_id
+    return header_user
 
 # OAuth Configuration
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', 'your-google-client-id')
@@ -231,6 +299,56 @@ def page_register():
     return send_from_directory("static", "register.html")
 
 
+@app.route("/api/register", methods=["POST"])
+def register_user():
+    payload = request.json or {}
+    name = (payload.get("name") or payload.get("fullname") or "").strip()
+    email = normalize_email(payload.get("email"))
+    password = (payload.get("password") or "").strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters"}), 400
+    if email in USER_STORE:
+        return jsonify({"error": "An account with that email already exists"}), 409
+
+    profile = {
+        "id": email,
+        "email": email,
+        "name": name or (email.split("@")[0] if email else ""),
+        "password_hash": hash_password(password),
+        "created_at": int(time.time())
+    }
+    USER_STORE[email] = profile
+    persist_users()
+    TRACK_STORE.setdefault(email, [])
+    persist_tracks()
+
+    session_user = public_user_payload(profile)
+    session['user'] = session_user
+
+    return jsonify({"message": "Account created successfully", "user": session_user}), 201
+
+
+@app.route("/api/login", methods=["POST"])
+def login_user():
+    payload = request.json or {}
+    email = normalize_email(payload.get("email"))
+    password = (payload.get("password") or "").strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+
+    user_record = USER_STORE.get(email)
+    if not user_record or not verify_password(password, user_record.get("password_hash")):
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    session_user = public_user_payload(user_record)
+    session['user'] = session_user
+    return jsonify(session_user), 200
+
+
 @app.route("/api/symptoms", methods=["GET"])
 def get_symptoms():
     return jsonify({
@@ -277,7 +395,7 @@ def predict():
 
 @app.route("/api/track", methods=["POST"])
 def track_health():
-    user_id = request.headers.get("X-User-Id") or request.args.get("user_id")
+    user_id = resolve_request_user_id()
     if not user_id:
         return jsonify({"error": "missing user id"}), 401
     data = request.json or {}
@@ -289,12 +407,13 @@ def track_health():
     # limit memory per user
     if len(series) > 500:
         del series[: len(series) - 500]
+    persist_tracks()
     return jsonify({"ok": True, "saved": data}), 200
 
 
 @app.route("/api/track/sample", methods=["POST"])
 def track_sample():
-    user_id = request.headers.get("X-User-Id") or request.args.get("user_id")
+    user_id = resolve_request_user_id()
     if not user_id:
         return jsonify({"error": "missing user id"}), 401
     # Generate demo wearable-like values
@@ -309,12 +428,13 @@ def track_sample():
     series.append(sample)
     if len(series) > 500:
         del series[: len(series) - 500]
+    persist_tracks()
     return jsonify({"ok": True, "saved": sample}), 200
 
 
 @app.route("/api/track/series", methods=["GET"])
 def track_series():
-    user_id = request.headers.get("X-User-Id") or request.args.get("user_id")
+    user_id = resolve_request_user_id()
     if not user_id:
         return jsonify({"error": "missing user id"}), 401
     # Return user's in-memory series
@@ -323,10 +443,11 @@ def track_series():
 
 @app.route("/api/track/clear", methods=["POST"])
 def track_clear():
-    user_id = request.headers.get("X-User-Id") or request.args.get("user_id")
+    user_id = resolve_request_user_id()
     if not user_id:
         return jsonify({"error": "missing user id"}), 401
     TRACK_STORE[user_id] = []
+    persist_tracks()
     return jsonify({"ok": True, "cleared": user_id}), 200
 
 

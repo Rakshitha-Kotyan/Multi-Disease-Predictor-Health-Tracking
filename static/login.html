@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HealthPredict • Login</title>
+  <script src="/static/theme-init.js"></script>
   <link rel="stylesheet" href="/static/styles.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -30,6 +31,9 @@
           <i class="fas fa-user-plus"></i>
           Register
         </a>
+        <button class="theme-toggle" type="button" aria-label="Toggle color mode">
+          <i class="fas fa-moon"></i>
+        </button>
       </div>
       <div class="mobile-menu-toggle">
         <i class="fas fa-bars"></i>
@@ -188,7 +192,7 @@
     }
     
     // Login form handling
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const formData = new FormData(this);
@@ -200,21 +204,39 @@
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
       submitBtn.disabled = true;
       
-      // Simulate login (replace with actual API call)
-      setTimeout(() => {
-        // Persist simple auth state locally
-        const user = { id: data.email.toLowerCase(), email: data.email };
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password
+          })
+        });
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (err) {}
+        
+        if (!response.ok) {
+          showNotification(result.error || 'Invalid email or password', 'error');
+          return;
+        }
+        
         if (typeof setCurrentUser === 'function') {
-          setCurrentUser(user);
-        } else {
-          try { localStorage.setItem('hp_current_user', JSON.stringify(user)); } catch (e) {}
+          setCurrentUser(result);
         }
         showNotification('Login successful! Welcome back!', 'success');
-        // Redirect to dashboard or home page
         setTimeout(() => {
           window.location.href = '/';
         }, 800);
-      }, 800);
+      } catch (error) {
+        showNotification('Unable to sign in right now. Please try again.', 'error');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
     });
   </script>
 </body>

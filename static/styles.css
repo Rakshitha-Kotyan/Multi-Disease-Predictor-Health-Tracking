@@ -1,5 +1,6 @@
-/* Modern Dark Theme CSS Variables */
+/* Modern Theme CSS Variables */
 :root {
+  color-scheme: dark;
   --primary-bg: #0a0a0a;
   --secondary-bg: #1a1a1a;
   --card-bg: #1e1e1e;
@@ -18,6 +19,32 @@
   --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.4);
   --border-radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --navbar-bg: rgba(10, 10, 10, 0.95);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --primary-bg: #f2f7ff;
+  --secondary-bg: #ffffff;
+  --card-bg: #ffffff;
+  --accent-bg: #e6f3ff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --primary-color: #0ea5e9;
+  --secondary-color: #38bdf8;
+  --accent-color: #f97316;
+  --gradient-primary: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  --gradient-secondary: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  --gradient-accent: linear-gradient(135deg, #f97316, #fb7185);
+  --border-color: #cfe2f5;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+  --shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.15);
+  --navbar-bg: rgba(255, 255, 255, 0.9);
 }
 
 /* Reset and Base Styles */
@@ -45,11 +72,15 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(10, 10, 10, 0.95);
+  background: var(--navbar-bg);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
   z-index: 1000;
   transition: var(--transition);
+}
+
+.navbar.scrolled {
+  box-shadow: var(--shadow);
 }
 
 .nav-container {
@@ -119,6 +150,11 @@ body {
   align-items: center;
 }
 
+.nav-auth .user-name-display {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 .login-btn, .register-btn {
   padding: 0.5rem 1rem;
   border-radius: var(--border-radius);
@@ -156,6 +192,33 @@ body {
   color: var(--text-primary);
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+.theme-toggle:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.theme-toggle i {
+  font-size: 1.1rem;
 }
 
 /* Hero Section */
@@ -554,6 +617,13 @@ body {
   
   .mobile-menu-toggle {
     display: block;
+  }
+  
+  .theme-toggle {
+    margin-left: 0;
+    order: 3;
+    width: 40px;
+    height: 40px;
   }
   
   .hero-content {
